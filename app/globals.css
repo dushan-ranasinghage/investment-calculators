@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #16132a;
+  --surface-800: #1e1b2e;
+  --surface-700: #252236;
+  --accent-purple: #8b5cf6;
+  --accent-green: #22c55e;
+}
+
+body {
+  background: var(--bg-dark);
+  color: #e2e8f0;
+}
