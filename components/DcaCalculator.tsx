@@ -17,6 +17,7 @@ import {
   formatPercent,
   type DcaParams,
   type Frequency,
+  type AdvancedMode,
   FREQUENCY_LABELS,
 } from '@/lib/dca'
 
@@ -26,6 +27,9 @@ const DEFAULT_PARAMS: DcaParams = {
   durationYears: 10,
   annualReturnPercent: 10,
   startingBalance: 0,
+  advancedMode: 'none',
+  maturityYears: 5,
+  keepPercentToMature: 80,
 }
 
 const FREQUENCY_OPTIONS: { value: Frequency; label: string }[] = [
@@ -61,6 +65,8 @@ export default function DcaCalculator() {
   }, [])
 
   const freqLabel = FREQUENCY_LABELS[params.frequency].toLowerCase()
+  const isContributeThenMature = (params.advancedMode === 'contribute_then_mature') && (params.maturityYears ?? 0) > 0
+  const isKeepPctToMature = (params.advancedMode === 'keep_pct_to_mature') && (params.maturityYears ?? 0) > 0 && (params.keepPercentToMature ?? 0) > 0
 
   return (
     <div>
@@ -160,6 +166,71 @@ export default function DcaCalculator() {
                 className="mt-2 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white placeholder-slate-500 focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
               />
             </div>
+
+            {/* Advanced */}
+            <div className="pt-3 border-t border-surface-600">
+              <p className="text-sm font-medium text-slate-300 mb-2">Advanced</p>
+              <label className="flex items-center gap-2 text-sm text-slate-400 mb-2">
+                Scenario
+                <InfoIcon title="Contribute then mature: invest for X years, then let sit with no new contributions. Keep % to mature: after DCA, keep Y% of portfolio to grow for extra years." />
+              </label>
+              <select
+                value={params.advancedMode ?? 'none'}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setParams((p) => ({ ...p, advancedMode: e.target.value as AdvancedMode }))
+                }
+                className="w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+              >
+                <option value="none">Standard (contribute entire duration)</option>
+                <option value="contribute_then_mature">Contribute for X years, then let mature</option>
+                <option value="keep_pct_to_mature">Keep % of final value to mature</option>
+              </select>
+              {(params.advancedMode === 'contribute_then_mature') && (
+                <div className="mt-3">
+                  <label className="text-sm text-slate-400">Maturity years (no new contributions after Duration)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={50}
+                      value={params.maturityYears ?? 5}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setParams((p) => ({ ...p, maturityYears: Number(e.target.value) || 0 }))
+                      }
+                      className="mt-1 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2 text-white"
+                    />
+                </div>
+              )}
+              {(params.advancedMode === 'keep_pct_to_mature') && (
+                <>
+                  <div className="mt-3">
+                    <label className="text-sm text-slate-400">Keep % of final portfolio (Y)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={params.keepPercentToMature ?? 80}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setParams((p) => ({ ...p, keepPercentToMature: Number(e.target.value) || 100 }))
+                      }
+                      className="mt-1 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2 text-white"
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <label className="text-sm text-slate-400">Maturity years</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={50}
+                      value={params.maturityYears ?? 5}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setParams((p) => ({ ...p, maturityYears: Number(e.target.value) || 0 }))
+                      }
+                      className="mt-1 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2 text-white"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="mt-5 flex gap-2">
@@ -191,35 +262,103 @@ export default function DcaCalculator() {
 
           {result ? (
             <div className="space-y-4">
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Investing <strong className="text-emerald-400">${params.investmentAmount.toLocaleString()}</strong> every{' '}
-                <strong className="text-emerald-400">{freqLabel}</strong> for{' '}
-                <strong className="text-emerald-400">{params.durationYears} years</strong> at{' '}
-                <strong className="text-emerald-400">{params.annualReturnPercent}%</strong> annual return grows your{' '}
-                <strong className="text-emerald-400">{formatCurrency(result.totalContributions)}</strong> in contributions to{' '}
-                <strong className="text-emerald-400">{formatCurrency(result.finalPortfolioValue)}</strong>.
-              </p>
+              {/* Standard: single summary */}
+              {!isContributeThenMature && !isKeepPctToMature && (
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Investing <strong className="text-emerald-400">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                  <strong className="text-emerald-400">{freqLabel}</strong> for{' '}
+                  <strong className="text-emerald-400">{params.durationYears} years</strong> at{' '}
+                  <strong className="text-emerald-400">{params.annualReturnPercent}%</strong> annual return grows your{' '}
+                  <strong className="text-emerald-400">{formatCurrency(result.totalContributions)}</strong> in contributions to{' '}
+                  <strong className="text-emerald-400">{formatCurrency(result.finalPortfolioValue)}</strong>.
+                </p>
+              )}
 
+              {/* Contribute then mature: phased explanation */}
+              {isContributeThenMature && result.valueAtEndOfContributions != null && (
+                <div className="rounded-lg bg-surface-700/60 p-3 text-sm space-y-3">
+                  <p className="text-slate-300 font-medium">How it works</p>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 1 — Contributing ({params.durationYears} years)</p>
+                      <p className="text-slate-300 mt-0.5">
+                        You invest <strong className="text-white">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                        <strong className="text-white">{freqLabel}</strong> at{' '}
+                        <strong className="text-white">{params.annualReturnPercent}%</strong> return. Total contributed:{' '}
+                        <strong className="text-emerald-400">{formatCurrency(result.totalContributions)}</strong>.
+                      </p>
+                      <p className="text-slate-400 mt-1">
+                        Portfolio at end of Year {params.durationYears}:{' '}
+                        <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong>
+                      </p>
+                    </div>
+                    <div className="border-t border-surface-600 pt-2">
+                      <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 2 — Maturity ({params.maturityYears} years, no new contributions)</p>
+                      <p className="text-slate-300 mt-0.5">
+                        You stop contributing. The <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong> continues to compound at{' '}
+                        <strong className="text-white">{params.annualReturnPercent}%</strong> for{' '}
+                        <strong className="text-white">{params.maturityYears} more years</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Keep % to mature: phased explanation */}
+              {isKeepPctToMature && result.valueAtEndOfContributions != null && result.amountKeptToMature != null && (
+                <div className="rounded-lg bg-surface-700/60 p-3 text-sm space-y-3">
+                  <p className="text-slate-300 font-medium">How it works</p>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 1 — DCA ({params.durationYears} years)</p>
+                      <p className="text-slate-300 mt-0.5">
+                        You invest <strong className="text-white">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                        <strong className="text-white">{freqLabel}</strong>. After {params.durationYears} years your portfolio is{' '}
+                        <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong>.
+                      </p>
+                    </div>
+                    <div className="border-t border-surface-600 pt-2">
+                      <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 2 — Keep {params.keepPercentToMature}% to mature ({params.maturityYears} years)</p>
+                      <p className="text-slate-300 mt-0.5">
+                        You withdraw <strong className="text-white">{100 - (params.keepPercentToMature ?? 0)}%</strong> and keep{' '}
+                        <strong className="text-white">{formatCurrency(result.amountKeptToMature)}</strong> ({params.keepPercentToMature}%) invested. That amount grows at{' '}
+                        <strong className="text-white">{params.annualReturnPercent}%</strong> for{' '}
+                        <strong className="text-white">{params.maturityYears} years</strong> with no further contributions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Final value highlight */}
               <div className="text-xl font-bold text-accent-purple">
                 {formatCurrency(result.finalPortfolioValue)}
               </div>
-              <p className="text-xs text-slate-500 -mt-1">Final Portfolio Value</p>
+              <p className="text-xs text-slate-500 -mt-1">
+                {isContributeThenMature
+                  ? `Final value after ${params.durationYears} yr contributions + ${params.maturityYears} yr maturity (${(params.durationYears ?? 0) + (params.maturityYears ?? 0)} years total)`
+                  : isKeepPctToMature
+                    ? `Value of the ${params.keepPercentToMature}% you kept, after ${params.maturityYears} yr maturity`
+                    : 'Final Portfolio Value'}
+              </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-slate-500 text-sm">Total Contributions</p>
+                  <p className="text-slate-500 text-sm">
+                    {isContributeThenMature || isKeepPctToMature ? 'Total you contributed' : 'Total Contributions'}
+                  </p>
                   <p className="text-white font-medium">{formatCurrency(result.totalContributions)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 text-sm">Total Returns</p>
+                  <p className="text-slate-500 text-sm">Total returns (growth)</p>
                   <p className="text-white font-medium">{formatCurrency(result.totalReturns)}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-slate-500 text-sm mb-1">Return on Investment</p>
+                <p className="text-slate-500 text-sm mb-1">Return on investment (vs contributions)</p>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 h-6 rounded-full bg-surface-700 overflow-hidden">
+                  <div className="flex-1 h-2 rounded-full bg-surface-700 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-accent-purple"
                       style={{
@@ -281,18 +420,23 @@ export default function DcaCalculator() {
               </div>
 
               <div className="rounded-lg bg-surface-700/80 p-3 space-y-1.5">
+                <p className="text-slate-500 text-xs mb-1.5">
+                  {(isContributeThenMature || isKeepPctToMature)
+                    ? 'If you had invested the same total amount as a lump sum at the start (same total timeline):'
+                    : 'If you had invested the same total amount as a lump sum at the start:'}
+                </p>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">DCA Final Value</span>
+                  <span className="text-slate-400">Your strategy (DCA{isContributeThenMature ? ' + maturity' : isKeepPctToMature ? ' + keep % to mature' : ''})</span>
                   <span className="text-white font-medium">{formatCurrency(result.finalPortfolioValue)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Lump Sum Final Value</span>
+                  <span className="text-slate-400">Lump sum (same total invested, full period)</span>
                   <span className="text-white font-medium">{formatCurrency(result.lumpSumFinalValue)}</span>
                 </div>
                 <div className="flex justify-between text-sm pt-2 border-t border-surface-600">
-                  <span className="text-slate-400">Lump Sum Advantage</span>
-                  <span className="font-medium text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
-                    +{formatCurrency(result.lumpSumAdvantage)}
+                  <span className="text-slate-400">Lump sum would have been</span>
+                  <span className={`font-medium px-2 py-0.5 rounded ${result.lumpSumAdvantage >= 0 ? 'text-emerald-400 bg-emerald-500/20' : 'text-amber-400 bg-amber-500/20'}`}>
+                    {result.lumpSumAdvantage >= 0 ? '+' : ''}{formatCurrency(result.lumpSumAdvantage)} {result.lumpSumAdvantage >= 0 ? 'more' : 'less'}
                   </span>
                 </div>
               </div>
