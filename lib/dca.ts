@@ -26,18 +26,28 @@ export interface DcaParams {
 
 export interface DcaResult {
   finalPortfolioValue: number
+  /** Sum of recurring contributions only (P × periods). */
   totalContributions: number
+  /** Starting balance + total contributions. */
+  totalInvested: number
+  /** Starting balance (echoed for convenience). */
+  startingBalance: number
+  /** Final value − total invested (true growth). */
   totalReturns: number
+  /** Returns as % of total invested. */
   returnOnInvestmentPercent: number
   lumpSumFinalValue: number
   lumpSumAdvantage: number
-  chartData: { year: number; portfolioValue: number; totalContributions: number }[]
+  /** Chart series: portfolioValue (true value) and totalInvested (starting + cumulative contributions). */
+  chartData: { year: number; portfolioValue: number; totalInvested: number }[]
   /** When contribute_then_mature: value at end of contribution period (before maturity). */
   valueAtEndOfContributions?: number
   /** When contribute_then_mature: total years = durationYears + maturityYears. */
   totalYears?: number
   /** When keep_pct_to_mature: amount kept (Y% of DCA final) to grow. */
   amountKeptToMature?: number
+  /** When keep_pct_to_mature: value withdrawn at end of DCA phase. */
+  amountWithdrawn?: number
   /** When keep_pct_to_mature: value after maturity period. */
   valueAfterMaturity?: number
 }
@@ -48,20 +58,20 @@ function dcaCore(
   periodsPerYear: number,
   contributionYears: number,
   startingBalance: number
-): { value: number; chartData: { year: number; portfolioValue: number; totalContributions: number }[] } {
+): { value: number; chartData: { year: number; portfolioValue: number; totalInvested: number }[] } {
   const n = contributionYears * periodsPerYear
   const growthFactor = Math.pow(1 + i, n)
   const fvContributions = i === 0 ? P * n : P * ((growthFactor - 1) / i)
   const fvStarting = startingBalance * growthFactor
   const value = fvStarting + fvContributions
-  const chartData: { year: number; portfolioValue: number; totalContributions: number }[] = []
+  const chartData: { year: number; portfolioValue: number; totalInvested: number }[] = []
   for (let y = 0; y <= contributionYears; y++) {
     const n_t = y * periodsPerYear
     const gf_t = Math.pow(1 + i, n_t)
     const contrib_t = i === 0 ? P * n_t : P * ((gf_t - 1) / i)
     const pv_t = startingBalance * gf_t + contrib_t
     const tc_t = P * n_t
-    chartData.push({ year: y, portfolioValue: pv_t, totalContributions: tc_t })
+    chartData.push({ year: y, portfolioValue: pv_t, totalInvested: startingBalance + tc_t })
   }
   return { value, chartData }
 }
@@ -95,6 +105,7 @@ export function calculateDca(params: DcaParams): DcaResult {
   )
 
   const totalContributions = P * contributionYears * periodsPerYear
+  const totalInvested = totalContributions + startingBalance
   let finalPortfolioValue: number
   let chartData = contributionChartData
 
@@ -104,26 +115,30 @@ export function calculateDca(params: DcaParams): DcaResult {
     for (let y = contributionYears + 1; y <= totalYears; y++) {
       const yearsIntoMaturity = y - contributionYears
       const pv = valueAtEndOfContributions * Math.pow(1 + r, yearsIntoMaturity)
-      chartData.push({ year: y, portfolioValue: pv, totalContributions })
+      chartData.push({ year: y, portfolioValue: pv, totalInvested })
     }
   } else if (advancedMode === 'keep_pct_to_mature' && maturityPeriodYears > 0 && keepPercentToMature > 0) {
     const amountKept = (keepPercentToMature / 100) * valueAtEndOfContributions
+    const amountWithdrawn = valueAtEndOfContributions - amountKept
     const valueAfterMaturityVal = amountKept * Math.pow(1 + r, maturityPeriodYears)
     const totalYears = contributionYears + maturityPeriodYears
     for (let y = contributionYears + 1; y <= totalYears; y++) {
       const yearsIntoMaturity = y - contributionYears
       const pv = amountKept * Math.pow(1 + r, yearsIntoMaturity)
-      chartData.push({ year: y, portfolioValue: pv, totalContributions })
+      chartData.push({ year: y, portfolioValue: pv, totalInvested })
     }
-    const totalReturns = valueAfterMaturityVal - totalContributions
+    // Net gain accounts for what you withdrew + what's left after maturity.
+    const totalReceived = amountWithdrawn + valueAfterMaturityVal
+    const totalReturns = totalReceived - totalInvested
     const returnOnInvestmentPercent =
-      totalContributions > 0 ? (totalReturns / totalContributions) * 100 : 0
-    const totalInvested = totalContributions + startingBalance
+      totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
     const lumpSumFinalValue = totalInvested * Math.pow(1 + r, totalYears)
-    const lumpSumAdvantage = lumpSumFinalValue - valueAfterMaturityVal
+    const lumpSumAdvantage = lumpSumFinalValue - totalReceived
     return {
       finalPortfolioValue: valueAfterMaturityVal,
       totalContributions,
+      totalInvested,
+      startingBalance,
       totalReturns,
       returnOnInvestmentPercent,
       lumpSumFinalValue,
@@ -131,16 +146,16 @@ export function calculateDca(params: DcaParams): DcaResult {
       chartData,
       valueAtEndOfContributions,
       amountKeptToMature: amountKept,
+      amountWithdrawn,
       valueAfterMaturity: valueAfterMaturityVal,
     }
   } else {
     finalPortfolioValue = valueAtEndOfContributions
   }
 
-  const totalReturns = finalPortfolioValue - totalContributions
+  const totalReturns = finalPortfolioValue - totalInvested
   const returnOnInvestmentPercent =
-    totalContributions > 0 ? (totalReturns / totalContributions) * 100 : 0
-  const totalInvested = totalContributions + startingBalance
+    totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
   const totalYearsForLump = advancedMode === 'contribute_then_mature'
     ? contributionYears + maturityPeriodYears
     : contributionYears
@@ -150,6 +165,8 @@ export function calculateDca(params: DcaParams): DcaResult {
   const result: DcaResult = {
     finalPortfolioValue,
     totalContributions,
+    totalInvested,
+    startingBalance,
     totalReturns,
     returnOnInvestmentPercent,
     lumpSumFinalValue,

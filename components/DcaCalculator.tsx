@@ -51,9 +51,12 @@ function InfoIcon({ title }: { title: string }) {
   )
 }
 
+const currentYear = new Date().getFullYear()
+
 export default function DcaCalculator() {
   const [params, setParams] = useState<DcaParams>(DEFAULT_PARAMS)
   const [result, setResult] = useState<ReturnType<typeof calculateDca> | null>(null)
+  const [chartShowActualYears, setChartShowActualYears] = useState(false)
 
   const handleCalculate = useCallback(() => {
     setResult(calculateDca(params))
@@ -265,12 +268,26 @@ export default function DcaCalculator() {
               {/* Standard: single summary */}
               {!isContributeThenMature && !isKeepPctToMature && (
                 <p className="text-slate-300 text-sm leading-relaxed">
-                  Investing <strong className="text-emerald-400">${params.investmentAmount.toLocaleString()}</strong> every{' '}
-                  <strong className="text-emerald-400">{freqLabel}</strong> for{' '}
-                  <strong className="text-emerald-400">{params.durationYears} years</strong> at{' '}
-                  <strong className="text-emerald-400">{params.annualReturnPercent}%</strong> annual return grows your{' '}
-                  <strong className="text-emerald-400">{formatCurrency(result.totalContributions)}</strong> in contributions to{' '}
-                  <strong className="text-emerald-400">{formatCurrency(result.finalPortfolioValue)}</strong>.
+                  {result.startingBalance > 0 ? (
+                    <>
+                      Starting with <strong className="text-emerald-400">{formatCurrency(result.startingBalance)}</strong> and investing{' '}
+                      <strong className="text-emerald-400">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                      <strong className="text-emerald-400">{freqLabel}</strong> for{' '}
+                      <strong className="text-emerald-400">{params.durationYears} years</strong> at{' '}
+                      <strong className="text-emerald-400">{params.annualReturnPercent}%</strong> annual return — your{' '}
+                      <strong className="text-emerald-400">{formatCurrency(result.totalInvested)}</strong> total invested grows to{' '}
+                      <strong className="text-emerald-400">{formatCurrency(result.finalPortfolioValue)}</strong>.
+                    </>
+                  ) : (
+                    <>
+                      Investing <strong className="text-emerald-400">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                      <strong className="text-emerald-400">{freqLabel}</strong> for{' '}
+                      <strong className="text-emerald-400">{params.durationYears} years</strong> at{' '}
+                      <strong className="text-emerald-400">{params.annualReturnPercent}%</strong> annual return grows your{' '}
+                      <strong className="text-emerald-400">{formatCurrency(result.totalContributions)}</strong> in contributions to{' '}
+                      <strong className="text-emerald-400">{formatCurrency(result.finalPortfolioValue)}</strong>.
+                    </>
+                  )}
                 </p>
               )}
 
@@ -282,10 +299,18 @@ export default function DcaCalculator() {
                     <div>
                       <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 1 — Contributing ({params.durationYears} years)</p>
                       <p className="text-slate-300 mt-0.5">
-                        You invest <strong className="text-white">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                        {result.startingBalance > 0 && (
+                          <>Starting with <strong className="text-white">{formatCurrency(result.startingBalance)}</strong>, you </>
+                        )}
+                        {result.startingBalance > 0 ? 'invest' : 'You invest'}{' '}
+                        <strong className="text-white">${params.investmentAmount.toLocaleString()}</strong> every{' '}
                         <strong className="text-white">{freqLabel}</strong> at{' '}
-                        <strong className="text-white">{params.annualReturnPercent}%</strong> return. Total contributed:{' '}
-                        <strong className="text-emerald-400">{formatCurrency(result.totalContributions)}</strong>.
+                        <strong className="text-white">{params.annualReturnPercent}%</strong> return. Total invested:{' '}
+                        <strong className="text-emerald-400">{formatCurrency(result.totalInvested)}</strong>
+                        {result.startingBalance > 0 && (
+                          <> ({formatCurrency(result.startingBalance)} starting + {formatCurrency(result.totalContributions)} contributions)</>
+                        )}
+                        .
                       </p>
                       <p className="text-slate-400 mt-1">
                         Portfolio at end of Year {params.durationYears}:{' '}
@@ -312,7 +337,11 @@ export default function DcaCalculator() {
                     <div>
                       <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 1 — DCA ({params.durationYears} years)</p>
                       <p className="text-slate-300 mt-0.5">
-                        You invest <strong className="text-white">${params.investmentAmount.toLocaleString()}</strong> every{' '}
+                        {result.startingBalance > 0 && (
+                          <>Starting with <strong className="text-white">{formatCurrency(result.startingBalance)}</strong>, you </>
+                        )}
+                        {result.startingBalance > 0 ? 'invest' : 'You invest'}{' '}
+                        <strong className="text-white">${params.investmentAmount.toLocaleString()}</strong> every{' '}
                         <strong className="text-white">{freqLabel}</strong>. After {params.durationYears} years your portfolio is{' '}
                         <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong>.
                       </p>
@@ -343,20 +372,40 @@ export default function DcaCalculator() {
               </p>
 
               <div className="grid grid-cols-2 gap-3">
+                {result.startingBalance > 0 && (
+                  <div>
+                    <p className="text-slate-500 text-sm">Starting balance</p>
+                    <p className="text-white font-medium">{formatCurrency(result.startingBalance)}</p>
+                  </div>
+                )}
                 <div>
-                  <p className="text-slate-500 text-sm">
-                    {isContributeThenMature || isKeepPctToMature ? 'Total you contributed' : 'Total Contributions'}
-                  </p>
+                  <p className="text-slate-500 text-sm">Total contributions</p>
                   <p className="text-white font-medium">{formatCurrency(result.totalContributions)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 text-sm">Total returns (growth)</p>
-                  <p className="text-white font-medium">{formatCurrency(result.totalReturns)}</p>
+                  <p className="text-slate-500 text-sm">Total invested</p>
+                  <p className="text-white font-medium">{formatCurrency(result.totalInvested)}</p>
                 </div>
+                <div>
+                  <p className="text-slate-500 text-sm">Total returns (growth)</p>
+                  <p className={`font-medium ${result.totalReturns >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>{formatCurrency(result.totalReturns)}</p>
+                </div>
+                {isKeepPctToMature && result.amountWithdrawn != null && result.valueAfterMaturity != null && (
+                  <>
+                    <div>
+                      <p className="text-slate-500 text-sm">Withdrawn at year {params.durationYears}</p>
+                      <p className="text-white font-medium">{formatCurrency(result.amountWithdrawn)}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 text-sm">Total received (withdrawn + matured)</p>
+                      <p className="text-white font-medium">{formatCurrency(result.amountWithdrawn + result.valueAfterMaturity)}</p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div>
-                <p className="text-slate-500 text-sm mb-1">Return on investment (vs contributions)</p>
+                <p className="text-slate-500 text-sm mb-1">Return on investment (vs total invested)</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 rounded-full bg-surface-700 overflow-hidden">
                     <div
@@ -372,13 +421,33 @@ export default function DcaCalculator() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-slate-500 text-xs">X-axis</span>
+                  <div className="flex rounded-lg bg-surface-700 p-0.5 border border-surface-600">
+                    <button
+                      type="button"
+                      onClick={() => setChartShowActualYears(false)}
+                      className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${!chartShowActualYears ? 'bg-accent-purple text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                      From now (Year 0)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setChartShowActualYears(true)}
+                      className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${chartShowActualYears ? 'bg-accent-purple text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                      Actual years ({currentYear}…)
+                    </button>
+                  </div>
+                </div>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={result.chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       dataKey="year"
-                      tickFormatter={(v: number) => `Year ${v}`}
+                      tickFormatter={(v: number) => chartShowActualYears ? `${currentYear + v}` : `Year ${v}`}
                       stroke="#94a3b8"
                       fontSize={12}
                     />
@@ -389,15 +458,15 @@ export default function DcaCalculator() {
                     />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#1e1b2e', border: '1px solid #2d2a3e' }}
-                      labelFormatter={(v: number) => `Year ${v}`}
+                      labelFormatter={(v: number) => chartShowActualYears ? `${currentYear + v}` : `Year ${v}`}
                       formatter={(value: number, name: string) => [
                         formatCurrency(value),
-                        name === 'portfolioValue' ? 'Portfolio Value' : 'Total Contributions',
+                        name === 'portfolioValue' ? 'Portfolio Value' : 'Total Invested',
                       ]}
                     />
                     <Legend
                       wrapperStyle={{ fontSize: 12 }}
-                      formatter={(value: string) => (value === 'portfolioValue' ? 'Portfolio Value' : 'Total Contributions')}
+                      formatter={(value: string) => (value === 'portfolioValue' ? 'Portfolio Value' : 'Total Invested')}
                     />
                     <Line
                       type="monotone"
@@ -409,14 +478,15 @@ export default function DcaCalculator() {
                     />
                     <Line
                       type="monotone"
-                      dataKey="totalContributions"
+                      dataKey="totalInvested"
                       stroke="#3b82f6"
                       strokeWidth={2}
                       dot={false}
-                      name="totalContributions"
+                      name="totalInvested"
                     />
                   </LineChart>
                 </ResponsiveContainer>
+              </div>
               </div>
 
               <div className="rounded-lg bg-surface-700/80 p-3 space-y-1.5">
