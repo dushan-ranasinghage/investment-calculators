@@ -121,33 +121,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className='glass-card p-6'>
-        <div className='grid gap-6 sm:grid-cols-3'>
-          <div>
-            <h3 className='text-base font-semibold text-white'>Investment Calculators</h3>
-            <p className='mt-2 text-sm text-slate-400'>
-              A growing set of calculators for planning and comparing investing strategies.
-            </p>
-          </div>
-          <div>
-            <h4 className='text-sm font-semibold text-slate-200'>Quick Links</h4>
-            <div className='mt-2 space-y-2 text-sm'>
-              <Link href='/dca' className='block text-slate-400 hover:text-slate-200'>
-                DCA Calculator
-              </Link>
-              <Link href='/compound-interest' className='block text-slate-400 hover:text-slate-200'>
-                Compound Interest
-              </Link>
-            </div>
-          </div>
-          <div>
-            <h4 className='text-sm font-semibold text-slate-200'>Disclaimer</h4>
-            <p className='mt-2 text-sm text-slate-400'>
-              Calculations are estimates for planning only, not financial advice.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
