@@ -11,7 +11,7 @@ const calculators = [
     title: 'Compound Interest',
     description: 'Estimate how a one-time or recurring investment grows over time.',
     href: '/compound-interest',
-    status: 'Soon',
+    status: 'Live',
   },
   {
     title: 'Retirement Planner',
