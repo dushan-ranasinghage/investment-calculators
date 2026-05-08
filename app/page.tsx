@@ -3,13 +3,13 @@ import Link from 'next/link'
 const calculators = [
   {
     title: 'DCA Calculator',
-    description: 'Plan recurring investments with advanced maturity scenarios and growth charts.',
+    description: 'Plan contribution strategy across phases, maturity, and withdrawal scenarios.',
     href: '/dca',
     status: 'Live',
   },
   {
     title: 'Compound Interest',
-    description: 'Estimate how a one-time or recurring investment grows over time.',
+    description: 'Analyze growth math using compounding frequency and contribution timing assumptions.',
     href: '/compound-interest',
     status: 'Live',
   },

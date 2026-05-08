@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import {
   CartesianGrid,
@@ -87,7 +88,21 @@ export default function CompoundInterestCalculator() {
       <header className='space-y-1'>
         <p className='text-xs font-medium uppercase tracking-[0.2em] text-slate-400'>Investment Planner</p>
         <h1 className='text-2xl font-bold text-white sm:text-3xl'>Compound Interest Calculator</h1>
-        <p className='text-sm text-slate-300'>Estimate how one-time and recurring investments grow over time.</p>
+        <p className='text-sm text-slate-300'>
+          Growth engine for precise compounding math with frequency and contribution timing controls.
+        </p>
+        <div className='flex flex-wrap gap-2 pt-1'>
+          <span className='rounded-full border border-surface-600/80 bg-surface-700/60 px-2.5 py-1 text-xs text-slate-300'>Lump sum forecasting</span>
+          <span className='rounded-full border border-surface-600/80 bg-surface-700/60 px-2.5 py-1 text-xs text-slate-300'>Rate sensitivity</span>
+          <span className='rounded-full border border-surface-600/80 bg-surface-700/60 px-2.5 py-1 text-xs text-slate-300'>Timing assumptions</span>
+        </div>
+        <p className='text-xs text-slate-400'>
+          Need phase-based contribution strategy?{' '}
+          <Link href='/dca' className='text-accent-purple-light hover:text-accent-purple'>
+            Open DCA Calculator
+          </Link>
+          .
+        </p>
       </header>
 
       <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>

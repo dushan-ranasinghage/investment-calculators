@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useCallback } from 'react'
 import {
   LineChart,
@@ -111,7 +112,21 @@ export default function DcaCalculator() {
       <header className="space-y-1">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Investment Planner</p>
         <h1 className="text-2xl font-bold text-white sm:text-3xl">DCA Calculator</h1>
-        <p className="text-sm text-slate-300">Model consistent investing with optional maturity scenarios.</p>
+        <p className="text-sm text-slate-300">
+          Strategy planner for regular investing and lifecycle scenarios (contribute, pause, mature, multi-phase).
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <span className="rounded-full border border-surface-600/80 bg-surface-700/60 px-2.5 py-1 text-xs text-slate-300">Monthly investing</span>
+          <span className="rounded-full border border-surface-600/80 bg-surface-700/60 px-2.5 py-1 text-xs text-slate-300">Phase planning</span>
+          <span className="rounded-full border border-surface-600/80 bg-surface-700/60 px-2.5 py-1 text-xs text-slate-300">Withdraw + mature</span>
+        </div>
+        <p className="text-xs text-slate-400">
+          Need formula-level compounding controls?{' '}
+          <Link href="/compound-interest" className="text-accent-purple-light hover:text-accent-purple">
+            Open Compound Interest
+          </Link>
+          .
+        </p>
       </header>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
