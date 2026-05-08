@@ -72,20 +72,20 @@ export default function DcaCalculator() {
   const isKeepPctToMature = (params.advancedMode === 'keep_pct_to_mature') && (params.maturityYears ?? 0) > 0 && (params.keepPercentToMature ?? 0) > 0
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="space-y-1">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Investment Planner</p>
         <h1 className="text-2xl font-bold text-white sm:text-3xl">DCA Calculator</h1>
         <p className="text-sm text-slate-300">Model consistent investing with optional maturity scenarios.</p>
       </header>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Left: Parameters */}
-        <div className="glass-card p-5 sm:p-6">
+        <div className="glass-card p-4 sm:p-5">
           <h2 className="text-base font-semibold text-white">Enter Your Parameters</h2>
           <p className="mt-0.5 mb-4 text-sm text-slate-400">Configure your DCA strategy.</p>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
                 Investment Amount ($)
@@ -237,7 +237,7 @@ export default function DcaCalculator() {
             </div>
           </div>
 
-          <div className="mt-5 flex gap-2">
+          <div className="mt-4 flex gap-2">
             <button
               onClick={handleCalculate}
               className="primary-btn"
@@ -260,12 +260,12 @@ export default function DcaCalculator() {
         </div>
 
         {/* Right: Results */}
-        <div className="glass-card p-5 sm:p-6">
+        <div className="glass-card p-4 sm:p-5">
           <h2 className="text-base font-semibold text-white">Results</h2>
           <p className="text-slate-400 text-sm mt-0.5 mb-4">Your DCA projection.</p>
 
           {result ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Standard: single summary */}
               {!isContributeThenMature && !isKeepPctToMature && (
                 <p className="text-slate-300 text-sm leading-relaxed">
@@ -445,7 +445,7 @@ export default function DcaCalculator() {
                     </button>
                   </div>
                 </div>
-              <div className="h-52">
+              <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={result.chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -516,7 +516,7 @@ export default function DcaCalculator() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-8 text-slate-500">
               <svg className="h-10 w-10 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
