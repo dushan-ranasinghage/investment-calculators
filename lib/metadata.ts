@@ -1,6 +1,6 @@
 import { Metadata, Viewport } from 'next'
 
-const domain = process.env.NEXT_PUBLIC_DOMAIN || 'https://investmentcalculators.dev'
+const domain = process.env.NEXT_PUBLIC_DOMAIN || 'https://investmentcalculators.org'
 
 export const viewport: Viewport = {
   width: 'device-width',
