@@ -17,12 +17,9 @@ export default function Navbar() {
       <div className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6'>
         <Link
           href='/'
-          className='group flex items-center gap-3 text-white transition-colors'
+          className='group flex items-center text-white transition-colors'
         >
-          <span className='flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-purple to-accent-purple-light text-sm font-bold text-white shadow-[0_8px_22px_rgb(139,92,246,0.45)]'>
-            IC
-          </span>
-          <span className='hidden text-sm font-semibold tracking-tight text-slate-100 group-hover:text-white sm:inline'>
+          <span className='text-sm font-semibold tracking-tight text-slate-100 group-hover:text-white sm:text-base'>
             Investment Calculators
           </span>
         </Link>
