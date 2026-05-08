@@ -2,16 +2,20 @@ import Link from 'next/link'
 
 export default function CompoundInterestPage() {
   return (
-    <div>
-      <header className='mb-5'>
-        <h1 className='text-xl font-bold text-white'>Compound Interest Calculator</h1>
-        <p className='text-slate-400 text-sm mt-0.5'>Coming soon</p>
+    <div className='space-y-5'>
+      <header className='space-y-1'>
+        <p className='text-xs font-medium uppercase tracking-[0.2em] text-slate-400'>In progress</p>
+        <h1 className='text-2xl font-bold text-white sm:text-3xl'>Compound Interest Calculator</h1>
+        <p className='text-sm text-slate-300'>A cleaner version is on the way.</p>
       </header>
-      <div className='rounded-xl bg-surface-800/80 border border-surface-600 p-8 text-center text-slate-400'>
-        <p>This calculator is not built yet. Use the DCA calculator in the meantime.</p>
+
+      <div className='glass-card p-8 text-center text-slate-300'>
+        <p className='mx-auto max-w-lg'>
+          This calculator is not built yet. In the meantime, use the upgraded DCA calculator for recurring investment scenarios.
+        </p>
         <Link
           href='/dca'
-          className='mt-4 inline-flex rounded-lg bg-accent-purple px-4 py-2 text-sm font-medium text-white hover:bg-accent-purple-light'
+          className='primary-btn mt-5'
         >
           Open DCA Calculator
         </Link>

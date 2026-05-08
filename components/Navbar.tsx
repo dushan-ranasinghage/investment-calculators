@@ -13,34 +13,33 @@ export default function Navbar() {
   const pathname = usePathname()
 
   return (
-    <nav className='sticky top-0 z-50 border-b border-surface-600 bg-surface-800/95 backdrop-blur supports-[backdrop-filter]:bg-surface-800/80'>
-      <div className='mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6'>
+    <nav className='sticky top-0 z-50 border-b border-surface-600/60 bg-surface-800/70 backdrop-blur-2xl supports-[backdrop-filter]:bg-surface-800/55'>
+      <div className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6'>
         <Link
           href='/'
-          className='flex items-center gap-2 text-white font-semibold tracking-tight hover:text-accent-purple-light transition-colors'
+          className='group flex items-center gap-3 text-white transition-colors'
         >
-          <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-accent-purple text-white text-sm'>
-            $
+          <span className='flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-purple to-accent-purple-light text-sm font-bold text-white shadow-[0_8px_22px_rgb(139,92,246,0.45)]'>
+            IC
           </span>
-          <span className='hidden sm:inline'>Investment Calculators</span>
+          <span className='hidden text-sm font-semibold tracking-tight text-slate-100 group-hover:text-white sm:inline'>
+            Investment Calculators
+          </span>
         </Link>
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-1 rounded-xl border border-surface-600/70 bg-surface-700/35 p-1'>
           {navItems.map(({ href, label }) => {
             const isActive = pathname === href
             return (
               <Link
                 key={href}
                 href={href}
-                className={`relative py-2 text-sm font-medium transition-colors ${
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                   isActive
-                    ? 'text-white'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-surface-700/80 text-white shadow-sm'
+                    : 'text-slate-300 hover:bg-surface-700/50 hover:text-white'
                 }`}
               >
                 {label}
-                {isActive && (
-                  <span className='absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-accent-purple' />
-                )}
               </Link>
             )
           })}

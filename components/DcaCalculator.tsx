@@ -72,17 +72,18 @@ export default function DcaCalculator() {
   const isKeepPctToMature = (params.advancedMode === 'keep_pct_to_mature') && (params.maturityYears ?? 0) > 0 && (params.keepPercentToMature ?? 0) > 0
 
   return (
-    <div>
-      <header className="mb-5">
-        <h1 className="text-xl font-bold text-white">DCA Calculator</h1>
-        <p className="text-slate-400 text-sm mt-0.5">Dollar-cost averaging projection</p>
+    <div className="space-y-5">
+      <header className="space-y-1">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Investment Planner</p>
+        <h1 className="text-2xl font-bold text-white sm:text-3xl">DCA Calculator</h1>
+        <p className="text-sm text-slate-300">Model consistent investing with optional maturity scenarios.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* Left: Parameters */}
-        <div className="rounded-xl bg-surface-800/80 border border-surface-600 p-5 shadow-lg">
+        <div className="glass-card p-5 sm:p-6">
           <h2 className="text-base font-semibold text-white">Enter Your Parameters</h2>
-          <p className="text-slate-400 text-sm mt-0.5 mb-4">Configure your DCA strategy.</p>
+          <p className="mt-0.5 mb-4 text-sm text-slate-400">Configure your DCA strategy.</p>
 
           <div className="space-y-4">
             <div>
@@ -98,7 +99,7 @@ export default function DcaCalculator() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setParams((p) => ({ ...p, investmentAmount: Number(e.target.value) || 0 }))
                 }
-                className="mt-2 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white placeholder-slate-500 focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+                className="field-input"
               />
             </div>
             <div>
@@ -111,7 +112,7 @@ export default function DcaCalculator() {
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                   setParams((p) => ({ ...p, frequency: e.target.value as Frequency }))
                 }
-                className="mt-2 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+                className="field-input"
               >
                 {FREQUENCY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -134,7 +135,7 @@ export default function DcaCalculator() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setParams((p) => ({ ...p, durationYears: Number(e.target.value) || 0 }))
                 }
-                className="mt-2 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white placeholder-slate-500 focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+                className="field-input"
               />
             </div>
             <div>
@@ -150,7 +151,7 @@ export default function DcaCalculator() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setParams((p) => ({ ...p, annualReturnPercent: Number(e.target.value) || 0 }))
                 }
-                className="mt-2 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white placeholder-slate-500 focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+                className="field-input"
               />
             </div>
             <div>
@@ -166,14 +167,14 @@ export default function DcaCalculator() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setParams((p) => ({ ...p, startingBalance: Number(e.target.value) || 0 }))
                 }
-                className="mt-2 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white placeholder-slate-500 focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+                className="field-input"
               />
             </div>
 
             {/* Advanced */}
-            <div className="pt-3 border-t border-surface-600">
-              <p className="text-sm font-medium text-slate-300 mb-2">Advanced</p>
-              <label className="flex items-center gap-2 text-sm text-slate-400 mb-2">
+            <div className="pt-3 border-t border-surface-600/70">
+              <p className="mb-2 text-sm font-medium text-slate-300">Advanced</p>
+              <label className="mb-2 flex items-center gap-2 text-sm text-slate-400">
                 Scenario
                 <InfoIcon title="Contribute then mature: invest for X years, then let sit with no new contributions. Keep % to mature: after DCA, keep Y% of portfolio to grow for extra years." />
               </label>
@@ -182,7 +183,7 @@ export default function DcaCalculator() {
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                   setParams((p) => ({ ...p, advancedMode: e.target.value as AdvancedMode }))
                 }
-                className="w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2.5 text-white focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
+                className="field-input mt-0"
               >
                 <option value="none">Standard (contribute entire duration)</option>
                 <option value="contribute_then_mature">Contribute for X years, then let mature</option>
@@ -199,7 +200,7 @@ export default function DcaCalculator() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setParams((p) => ({ ...p, maturityYears: Number(e.target.value) || 0 }))
                       }
-                      className="mt-1 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2 text-white"
+                      className="field-input mt-1"
                     />
                 </div>
               )}
@@ -215,7 +216,7 @@ export default function DcaCalculator() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setParams((p) => ({ ...p, keepPercentToMature: Number(e.target.value) || 100 }))
                       }
-                      className="mt-1 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2 text-white"
+                      className="field-input mt-1"
                     />
                   </div>
                   <div className="mt-2">
@@ -228,7 +229,7 @@ export default function DcaCalculator() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setParams((p) => ({ ...p, maturityYears: Number(e.target.value) || 0 }))
                       }
-                      className="mt-1 w-full rounded-lg bg-surface-700 border border-surface-600 px-4 py-2 text-white"
+                      className="field-input mt-1"
                     />
                   </div>
                 </>
@@ -239,7 +240,7 @@ export default function DcaCalculator() {
           <div className="mt-5 flex gap-2">
             <button
               onClick={handleCalculate}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent-purple px-5 py-2.5 font-medium text-white hover:bg-accent-purple-light transition-colors"
+              className="primary-btn"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -248,7 +249,7 @@ export default function DcaCalculator() {
             </button>
             <button
               onClick={handleReset}
-              className="inline-flex items-center gap-2 rounded-lg bg-surface-600 px-4 py-2.5 font-medium text-slate-300 hover:bg-surface-700 transition-colors"
+              className="secondary-btn"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -259,7 +260,7 @@ export default function DcaCalculator() {
         </div>
 
         {/* Right: Results */}
-        <div className="rounded-xl bg-surface-800/80 border border-surface-600 p-5 shadow-lg">
+        <div className="glass-card p-5 sm:p-6">
           <h2 className="text-base font-semibold text-white">Results</h2>
           <p className="text-slate-400 text-sm mt-0.5 mb-4">Your DCA projection.</p>
 
@@ -293,7 +294,7 @@ export default function DcaCalculator() {
 
               {/* Contribute then mature: phased explanation */}
               {isContributeThenMature && result.valueAtEndOfContributions != null && (
-                <div className="rounded-lg bg-surface-700/60 p-3 text-sm space-y-3">
+                <div className="soft-panel p-3 text-sm space-y-3">
                   <p className="text-slate-300 font-medium">How it works</p>
                   <div className="space-y-2">
                     <div>
@@ -317,7 +318,7 @@ export default function DcaCalculator() {
                         <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong>
                       </p>
                     </div>
-                    <div className="border-t border-surface-600 pt-2">
+                    <div className="border-t border-surface-600/70 pt-2">
                       <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 2 — Maturity ({params.maturityYears} years, no new contributions)</p>
                       <p className="text-slate-300 mt-0.5">
                         You stop contributing. The <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong> continues to compound at{' '}
@@ -331,7 +332,7 @@ export default function DcaCalculator() {
 
               {/* Keep % to mature: phased explanation */}
               {isKeepPctToMature && result.valueAtEndOfContributions != null && result.amountKeptToMature != null && (
-                <div className="rounded-lg bg-surface-700/60 p-3 text-sm space-y-3">
+                <div className="soft-panel p-3 text-sm space-y-3">
                   <p className="text-slate-300 font-medium">How it works</p>
                   <div className="space-y-2">
                     <div>
@@ -346,7 +347,7 @@ export default function DcaCalculator() {
                         <strong className="text-white">{formatCurrency(result.valueAtEndOfContributions)}</strong>.
                       </p>
                     </div>
-                    <div className="border-t border-surface-600 pt-2">
+                    <div className="border-t border-surface-600/70 pt-2">
                       <p className="text-slate-500 text-xs uppercase tracking-wide">Phase 2 — Keep {params.keepPercentToMature}% to mature ({params.maturityYears} years)</p>
                       <p className="text-slate-300 mt-0.5">
                         You withdraw <strong className="text-white">{100 - (params.keepPercentToMature ?? 0)}%</strong> and keep{' '}
@@ -360,10 +361,13 @@ export default function DcaCalculator() {
               )}
 
               {/* Final value highlight */}
-              <div className="text-xl font-bold text-accent-purple">
-                {formatCurrency(result.finalPortfolioValue)}
+              <div className="rounded-xl border border-accent-purple/40 bg-accent-purple/15 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-300">Final Portfolio Value</p>
+                <div className="text-2xl font-bold text-accent-purple-light">
+                  {formatCurrency(result.finalPortfolioValue)}
+                </div>
               </div>
-              <p className="text-xs text-slate-500 -mt-1">
+              <p className="text-xs text-slate-500">
                 {isContributeThenMature
                   ? `Final value after ${params.durationYears} yr contributions + ${params.maturityYears} yr maturity (${(params.durationYears ?? 0) + (params.maturityYears ?? 0)} years total)`
                   : isKeepPctToMature
@@ -371,7 +375,7 @@ export default function DcaCalculator() {
                     : 'Final Portfolio Value'}
               </p>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 rounded-xl border border-surface-600/70 bg-surface-700/40 p-3">
                 {result.startingBalance > 0 && (
                   <div>
                     <p className="text-slate-500 text-sm">Starting balance</p>
@@ -404,7 +408,7 @@ export default function DcaCalculator() {
                 )}
               </div>
 
-              <div>
+              <div className="soft-panel p-3">
                 <p className="text-slate-500 text-sm mb-1">Return on investment (vs total invested)</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 rounded-full bg-surface-700 overflow-hidden">
@@ -421,10 +425,10 @@ export default function DcaCalculator() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 soft-panel p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-slate-500 text-xs">X-axis</span>
-                  <div className="flex rounded-lg bg-surface-700 p-0.5 border border-surface-600">
+                  <div className="flex rounded-lg bg-surface-700 p-0.5 border border-surface-600/70">
                     <button
                       type="button"
                       onClick={() => setChartShowActualYears(false)}
@@ -489,7 +493,7 @@ export default function DcaCalculator() {
               </div>
               </div>
 
-              <div className="rounded-lg bg-surface-700/80 p-3 space-y-1.5">
+              <div className="soft-panel p-3 space-y-1.5">
                 <p className="text-slate-500 text-xs mb-1.5">
                   {(isContributeThenMature || isKeepPctToMature)
                     ? 'If you had invested the same total amount as a lump sum at the start (same total timeline):'
@@ -503,7 +507,7 @@ export default function DcaCalculator() {
                   <span className="text-slate-400">Lump sum (same total invested, full period)</span>
                   <span className="text-white font-medium">{formatCurrency(result.lumpSumFinalValue)}</span>
                 </div>
-                <div className="flex justify-between text-sm pt-2 border-t border-surface-600">
+                <div className="flex justify-between text-sm pt-2 border-t border-surface-600/70">
                   <span className="text-slate-400">Lump sum would have been</span>
                   <span className={`font-medium px-2 py-0.5 rounded ${result.lumpSumAdvantage >= 0 ? 'text-emerald-400 bg-emerald-500/20' : 'text-amber-400 bg-amber-500/20'}`}>
                     {result.lumpSumAdvantage >= 0 ? '+' : ''}{formatCurrency(result.lumpSumAdvantage)} {result.lumpSumAdvantage >= 0 ? 'more' : 'less'}
