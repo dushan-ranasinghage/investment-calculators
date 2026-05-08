@@ -33,6 +33,29 @@ const highlights = [
   'Built to add more calculators quickly',
 ]
 
+const faqs = [
+  {
+    question: "What is a DCA calculator?",
+    answer: "A DCA (Dollar Cost Averaging) calculator helps you plan a recurring investment strategy by analyzing contributions across different market phases and time horizons. It shows you the potential outcomes of consistent, periodic investing."
+  },
+  {
+    question: "How does compound interest work?",
+    answer: "Compound interest is interest earned on both your initial investment and the previously earned interest. Our calculator lets you visualize how your money grows exponentially over time with different compounding frequencies."
+  },
+  {
+    question: "Are these calculators accurate?",
+    answer: "Our calculators are built with accurate financial formulas. However, they're designed for planning and educational purposes only, not as financial advice. Always consult a financial advisor for investment decisions."
+  },
+  {
+    question: "Do I need to create an account?",
+    answer: "No! All our calculators are completely free and require no account creation or sign-up. Just visit, enter your numbers, and see the results instantly."
+  },
+  {
+    question: "Can I use these calculators on mobile?",
+    answer: "Yes, all our calculators are fully responsive and work great on mobile, tablet, and desktop devices. No downloads or installations needed."
+  },
+]
+
 export default function HomePage() {
   return (
     <div className='space-y-8'>
@@ -47,7 +70,7 @@ export default function HomePage() {
           Modern calculators for long-term wealth planning
         </h1>
         <p className='mt-4 max-w-2xl text-slate-300'>
-          Plan recurring investments, compare scenarios, and make faster decisions with a cleaner, data-first interface.
+          Plan recurring investments, compare scenarios, and make faster decisions with a cleaner, data-first interface. Free investment calculators for DCA, compound interest, and more.
         </p>
         <div className='mt-7 flex flex-wrap gap-3'>
           <Link
@@ -121,6 +144,29 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className='py-8'>
+        <h2 className='text-2xl font-semibold text-white'>Frequently Asked Questions</h2>
+        <p className='mt-1 text-sm text-slate-400'>Everything you need to know about our investment calculators.</p>
+
+        <div className='mt-6 space-y-4'>
+          {faqs.map((faq, idx) => (
+            <details key={idx} className='glass-card group cursor-pointer p-5'>
+              <summary className='flex items-center justify-between font-medium text-white'>
+                {faq.question}
+                <span className='ml-3 text-lg transition group-open:rotate-180'>▼</span>
+              </summary>
+              <p className='mt-4 text-sm leading-relaxed text-slate-300'>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className='rounded-lg border border-surface-600/40 bg-surface-800/50 p-6 sm:p-8'>
+        <h2 className='text-lg font-semibold text-white'>Disclaimer</h2>
+        <p className='mt-3 text-sm text-slate-400'>
+          These calculators are for educational and planning purposes only. They are not financial advice. Past performance does not guarantee future results. Please consult with a qualified financial advisor before making investment decisions.
+        </p>
+      </section>
     </div>
   )
 }

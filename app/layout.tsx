@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import { baseMetadata, viewport } from '@/lib/metadata'
+import { generateWebApplicationSchema } from '@/lib/seo-utils'
 
-export const metadata: Metadata = {
-  title: 'Investment Calculators',
-  description: 'DCA and other investment calculators',
-}
+export const metadata: Metadata = baseMetadata
+export { viewport }
 
 export default function RootLayout({
   children,
@@ -17,6 +17,14 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebApplicationSchema('https://investmentcalculators.dev'))
+          }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col antialiased">
         <Navbar />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
