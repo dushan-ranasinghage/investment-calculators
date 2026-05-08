@@ -16,6 +16,7 @@ import {
   formatCurrency,
   formatPercent,
   type DcaParams,
+  type DcaPhase,
   type Frequency,
   type AdvancedMode,
   FREQUENCY_LABELS,
@@ -30,6 +31,7 @@ const DEFAULT_PARAMS: DcaParams = {
   advancedMode: 'none',
   maturityYears: 5,
   keepPercentToMature: 80,
+  phases: [],
 }
 
 const FREQUENCY_OPTIONS: { value: Frequency; label: string }[] = [
@@ -70,6 +72,39 @@ export default function DcaCalculator() {
   const freqLabel = FREQUENCY_LABELS[params.frequency].toLowerCase()
   const isContributeThenMature = (params.advancedMode === 'contribute_then_mature') && (params.maturityYears ?? 0) > 0
   const isKeepPctToMature = (params.advancedMode === 'keep_pct_to_mature') && (params.maturityYears ?? 0) > 0 && (params.keepPercentToMature ?? 0) > 0
+  const isMultiPhase = params.advancedMode === 'multi_phase'
+  const phases = params.phases ?? []
+
+  const updatePhase = useCallback((index: number, patch: Partial<DcaPhase>) => {
+    setParams((prev) => {
+      const nextPhases = [...(prev.phases ?? [])]
+      if (!nextPhases[index]) return prev
+      nextPhases[index] = { ...nextPhases[index], ...patch }
+      return { ...prev, phases: nextPhases }
+    })
+  }, [])
+
+  const addPhase = useCallback(() => {
+    setParams((prev) => {
+      const nextPhases = [...(prev.phases ?? [])]
+      const last = nextPhases[nextPhases.length - 1]
+      nextPhases.push({
+        years: last?.years ?? prev.durationYears,
+        contributionPerPeriod: last?.contributionPerPeriod ?? prev.investmentAmount,
+        frequency: last?.frequency ?? prev.frequency,
+        annualReturnPercent: last?.annualReturnPercent ?? prev.annualReturnPercent,
+      })
+      return { ...prev, phases: nextPhases }
+    })
+  }, [])
+
+  const removePhase = useCallback((index: number) => {
+    setParams((prev) => {
+      const nextPhases = [...(prev.phases ?? [])]
+      nextPhases.splice(index, 1)
+      return { ...prev, phases: nextPhases }
+    })
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -188,6 +223,7 @@ export default function DcaCalculator() {
                 <option value="none">Standard (contribute entire duration)</option>
                 <option value="contribute_then_mature">Contribute for X years, then let mature</option>
                 <option value="keep_pct_to_mature">Keep % of final value to mature</option>
+                <option value="multi_phase">Multi-phase strategy (X years, then Y years...)</option>
               </select>
               {(params.advancedMode === 'contribute_then_mature') && (
                 <div className="mt-3">
@@ -234,6 +270,103 @@ export default function DcaCalculator() {
                   </div>
                 </>
               )}
+              {isMultiPhase && (
+                <div className="mt-3 rounded-xl border border-surface-600/70 bg-surface-700/30 p-3">
+                  <p className="text-sm font-medium text-slate-200">Additional phases</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Main inputs above are used as Phase 1. Add more phases here. Each phase starts from the portfolio value compounded in the previous phase.
+                  </p>
+
+                  <div className="mt-3 space-y-3">
+                    {phases.map((phase, index) => (
+                      <div key={`phase-${index}`} className="rounded-lg border border-surface-600/60 bg-surface-800/45 p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">Phase {index + 2}</p>
+                          <button
+                            type="button"
+                            onClick={() => removePhase(index)}
+                            className="text-xs text-slate-400 transition hover:text-white"
+                          >
+                            Remove
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <div>
+                            <label className="text-xs text-slate-400">Years</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={50}
+                              step={1}
+                              value={phase.years}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updatePhase(index, { years: Number(e.target.value) || 0 })
+                              }
+                              className="field-input mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-slate-400">Contribution per period ($)</label>
+                            <input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={phase.contributionPerPeriod}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updatePhase(index, { contributionPerPeriod: Number(e.target.value) || 0 })
+                              }
+                              className="field-input mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-slate-400">Frequency</label>
+                            <select
+                              value={phase.frequency}
+                              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                updatePhase(index, { frequency: e.target.value as Frequency })
+                              }
+                              className="field-input mt-1"
+                            >
+                              {FREQUENCY_OPTIONS.map((opt) => (
+                                <option key={`${index}-${opt.value}`} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs text-slate-400">Annual return (%)</label>
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.1}
+                              value={phase.annualReturnPercent}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updatePhase(index, { annualReturnPercent: Number(e.target.value) || 0 })
+                              }
+                              className="field-input mt-1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {phases.length === 0 && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      No extra phases yet. Your main inputs are currently the only phase.
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={addPhase}
+                    className="secondary-btn mt-3"
+                  >
+                    + Add phase
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -267,7 +400,7 @@ export default function DcaCalculator() {
           {result ? (
             <div className="space-y-3">
               {/* Standard: single summary */}
-              {!isContributeThenMature && !isKeepPctToMature && (
+              {!isContributeThenMature && !isKeepPctToMature && !isMultiPhase && (
                 <p className="text-slate-300 text-sm leading-relaxed">
                   {result.startingBalance > 0 ? (
                     <>
@@ -360,6 +493,26 @@ export default function DcaCalculator() {
                 </div>
               )}
 
+              {isMultiPhase && result.phaseSummaries && result.phaseSummaries.length > 0 && (
+                <div className="soft-panel p-3 text-sm space-y-3">
+                  <p className="text-slate-300 font-medium">Multi-phase breakdown</p>
+                  <div className="space-y-2">
+                    {result.phaseSummaries.map((phase) => (
+                      <div key={`result-phase-${phase.phaseIndex}`} className="rounded-lg border border-surface-600/60 bg-surface-800/45 p-2.5">
+                        <p className="text-slate-500 text-xs uppercase tracking-wide">
+                          Phase {phase.phaseIndex} ({phase.startYear} - {phase.endYear} years)
+                        </p>
+                        <p className="mt-1 text-slate-300">
+                          Start: <strong className="text-white">{formatCurrency(phase.startValue)}</strong> | Contributions:{' '}
+                          <strong className="text-white">{formatCurrency(phase.contributions)}</strong> | End:{' '}
+                          <strong className="text-emerald-400">{formatCurrency(phase.endValue)}</strong>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Final value highlight */}
               <div className="rounded-xl border border-accent-purple/40 bg-accent-purple/15 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-300">Final Portfolio Value</p>
@@ -372,6 +525,8 @@ export default function DcaCalculator() {
                   ? `Final value after ${params.durationYears} yr contributions + ${params.maturityYears} yr maturity (${(params.durationYears ?? 0) + (params.maturityYears ?? 0)} years total)`
                   : isKeepPctToMature
                     ? `Value of the ${params.keepPercentToMature}% you kept, after ${params.maturityYears} yr maturity`
+                    : isMultiPhase
+                      ? `Final value after ${result.totalYears ?? 0} years across ${result.phaseSummaries?.length ?? 0} phases`
                     : 'Final Portfolio Value'}
               </p>
 
@@ -495,12 +650,14 @@ export default function DcaCalculator() {
 
               <div className="soft-panel p-3 space-y-1.5">
                 <p className="text-slate-500 text-xs mb-1.5">
-                  {(isContributeThenMature || isKeepPctToMature)
+                  {(isContributeThenMature || isKeepPctToMature || isMultiPhase)
                     ? 'If you had invested the same total amount as a lump sum at the start (same total timeline):'
                     : 'If you had invested the same total amount as a lump sum at the start:'}
                 </p>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Your strategy (DCA{isContributeThenMature ? ' + maturity' : isKeepPctToMature ? ' + keep % to mature' : ''})</span>
+                  <span className="text-slate-400">
+                    Your strategy (DCA{isContributeThenMature ? ' + maturity' : isKeepPctToMature ? ' + keep % to mature' : isMultiPhase ? ' multi-phase' : ''})
+                  </span>
                   <span className="text-white font-medium">{formatCurrency(result.finalPortfolioValue)}</span>
                 </div>
                 <div className="flex justify-between text-sm">

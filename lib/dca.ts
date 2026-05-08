@@ -8,7 +8,14 @@ const PERIODS_PER_YEAR: Record<Frequency, number> = {
   yearly: 1,
 }
 
-export type AdvancedMode = 'none' | 'contribute_then_mature' | 'keep_pct_to_mature'
+export type AdvancedMode = 'none' | 'contribute_then_mature' | 'keep_pct_to_mature' | 'multi_phase'
+
+export interface DcaPhase {
+  years: number
+  contributionPerPeriod: number
+  frequency: Frequency
+  annualReturnPercent: number
+}
 
 export interface DcaParams {
   investmentAmount: number
@@ -22,6 +29,8 @@ export interface DcaParams {
   maturityYears?: number
   /** When keep_pct_to_mature: percent of final portfolio to keep growing (0-100). */
   keepPercentToMature?: number
+  /** When multi_phase: run each phase sequentially on top of previous compounded value. */
+  phases?: DcaPhase[]
 }
 
 export interface DcaResult {
@@ -50,6 +59,23 @@ export interface DcaResult {
   amountWithdrawn?: number
   /** When keep_pct_to_mature: value after maturity period. */
   valueAfterMaturity?: number
+  /** When multi_phase: breakdown by phase. */
+  phaseSummaries?: {
+    phaseIndex: number
+    startYear: number
+    endYear: number
+    contributions: number
+    startValue: number
+    endValue: number
+  }[]
+}
+
+interface PhaseSimulationResult {
+  endingValue: number
+  endingYear: number
+  contributions: number
+  totalInvestedEnd: number
+  chartPoints: { year: number; portfolioValue: number; totalInvested: number }[]
 }
 
 function dcaCore(
@@ -76,6 +102,43 @@ function dcaCore(
   return { value, chartData }
 }
 
+function simulatePhase(
+  startingValue: number,
+  startingYear: number,
+  totalInvestedStart: number,
+  phase: DcaPhase
+): PhaseSimulationResult {
+  const periodsPerYear = PERIODS_PER_YEAR[phase.frequency]
+  const periods = Math.max(0, Math.round(phase.years * periodsPerYear))
+  const i = (phase.annualReturnPercent / 100) / periodsPerYear
+  let value = startingValue
+  let contributions = 0
+  let totalInvested = totalInvestedStart
+  const chartPoints: { year: number; portfolioValue: number; totalInvested: number }[] = []
+
+  for (let p = 1; p <= periods; p++) {
+    value = value * (1 + i) + phase.contributionPerPeriod
+    contributions += phase.contributionPerPeriod
+    totalInvested += phase.contributionPerPeriod
+
+    if (p % periodsPerYear === 0) {
+      chartPoints.push({
+        year: startingYear + p / periodsPerYear,
+        portfolioValue: value,
+        totalInvested,
+      })
+    }
+  }
+
+  return {
+    endingValue: value,
+    endingYear: startingYear + (periods / periodsPerYear),
+    contributions,
+    totalInvestedEnd: totalInvested,
+    chartPoints,
+  }
+}
+
 export function calculateDca(params: DcaParams): DcaResult {
   const {
     investmentAmount,
@@ -86,6 +149,7 @@ export function calculateDca(params: DcaParams): DcaResult {
     advancedMode = 'none',
     maturityYears = 0,
     keepPercentToMature = 100,
+    phases = [],
   } = params
   const periodsPerYear = PERIODS_PER_YEAR[frequency]
   const r = annualReturnPercent / 100
@@ -95,6 +159,85 @@ export function calculateDca(params: DcaParams): DcaResult {
   /** For contribute_then_mature, Duration (Years) is the contribution period; otherwise same. */
   const contributionYears = durationYears
   const maturityPeriodYears = maturityYears ?? 0
+
+  if (advancedMode === 'multi_phase') {
+    const basePhase: DcaPhase = {
+      years: durationYears,
+      contributionPerPeriod: investmentAmount,
+      frequency,
+      annualReturnPercent,
+    }
+    const allPhases = [basePhase, ...phases]
+    const validPhases = allPhases.filter(
+      (phase) =>
+        phase.years > 0 &&
+        phase.annualReturnPercent >= 0 &&
+        phase.contributionPerPeriod >= 0
+    )
+
+    if (validPhases.length > 0) {
+      let value = startingBalance
+      let currentYear = 0
+      let totalInvested = startingBalance
+      let totalContributions = 0
+
+      const chartData: { year: number; portfolioValue: number; totalInvested: number }[] = [
+        { year: 0, portfolioValue: startingBalance, totalInvested: startingBalance },
+      ]
+      const phaseSummaries: {
+        phaseIndex: number
+        startYear: number
+        endYear: number
+        contributions: number
+        startValue: number
+        endValue: number
+      }[] = []
+
+      validPhases.forEach((phase, index) => {
+        const startValue = value
+        const phaseStartYear = currentYear
+        const simulation = simulatePhase(value, currentYear, totalInvested, phase)
+        value = simulation.endingValue
+        currentYear = simulation.endingYear
+        totalInvested = simulation.totalInvestedEnd
+        totalContributions += simulation.contributions
+        chartData.push(...simulation.chartPoints)
+        phaseSummaries.push({
+          phaseIndex: index + 1,
+          startYear: phaseStartYear,
+          endYear: simulation.endingYear,
+          contributions: simulation.contributions,
+          startValue,
+          endValue: simulation.endingValue,
+        })
+      })
+
+      let lumpSumFinalValue = totalInvested
+      validPhases.forEach((phase) => {
+        lumpSumFinalValue *= Math.pow(1 + phase.annualReturnPercent / 100, phase.years)
+      })
+
+      const finalPortfolioValue = value
+      const totalReturns = finalPortfolioValue - totalInvested
+      const returnOnInvestmentPercent =
+        totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
+      const lumpSumAdvantage = lumpSumFinalValue - finalPortfolioValue
+
+      return {
+        finalPortfolioValue,
+        totalContributions,
+        totalInvested,
+        startingBalance,
+        totalReturns,
+        returnOnInvestmentPercent,
+        lumpSumFinalValue,
+        lumpSumAdvantage,
+        chartData,
+        totalYears: currentYear,
+        phaseSummaries,
+      }
+    }
+  }
 
   const { value: valueAtEndOfContributions, chartData: contributionChartData } = dcaCore(
     P,
