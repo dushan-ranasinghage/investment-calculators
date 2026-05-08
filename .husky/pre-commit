@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -e
+
+# Git hooks may run with a minimal PATH. Add common Node locations.
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+
+# Fallback for nvm-managed installs.
+if ! command -v node >/dev/null 2>&1 && [ -s "$HOME/.nvm/nvm.sh" ]; then
+  . "$HOME/.nvm/nvm.sh"
+  nvm use --silent default >/dev/null 2>&1 || true
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: Node.js not found in PATH"
+  exit 127
+fi
+
+./node_modules/.bin/vitest run
